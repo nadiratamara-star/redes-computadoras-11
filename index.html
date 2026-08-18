@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exploradores de Redes - 11.º Bachillerato en Informática</title>
+  <!-- Google Fonts & Canvas Confetti & jsPDF -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --secondary: #0d9488;
+      --accent: #f59e0b;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      padding: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Screen management */
+    .screen {
+      display: none;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Typography */
+    h1 { font-size: 2.2rem; font-weight: 800; color: #38bdf8; text-align: center; margin-bottom: 10px; }
+    h2 { font-size: 1.6rem; color: #f1f5f9; margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; }
+    h3 { font-size: 1.2rem; color: #38bdf8; margin-bottom: 10px; }
+    p { font-size: 1rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
+
+    /* Progress & Header Bar */
+    .header-bar {
+      margin-bottom: 20px;
+    }
+    .progress-container {
+      width: 100%;
+      background-color: #334155;
+      border-radius: 10px;
+      height: 12px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transition: width 0.3s ease;
+    }
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Form & Controls */
+    .input-group {
+      margin: 20px 0;
+      text-align: center;
+    }
+    input[type="text"] {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 2px solid #475569;
+      background-color: #0f172a;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.3s;
+    }
+    input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+
+    /* Buttons */
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-block;
+      margin: 5px;
+      text-align: center;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+    }
+    .btn:disabled {
+      background: #475569;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .btn-secondary {
+      background: #334155;
+    }
+    .btn-secondary:hover {
+      background: #475569;
+    }
+    .btn-audio {
+      background: #0284c7;
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    /* Grid Layouts & Cards */
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 15px;
+      border-radius: 12px;
+      transition: border 0.3s;
+    }
+    .card:hover {
+      border-color: var(--primary);
+    }
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* Questions & Options */
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    .option-btn {
+      background: #0f172a;
+      border: 2px solid #334155;
+      color: #f8fafc;
+      padding: 12px 16px;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+    .option-btn:hover {
+      border-color: var(--primary);
+      background: #1e293b;
+    }
+    .option-btn.selected {
+      border-color: var(--primary);
+      background: #0284c722;
+    }
+    .option-btn.correct {
+      background: #22c55e22 !important;
+      border-color: var(--success) !important;
+      color: #4ade80;
+    }
+    .option-btn.incorrect {
+      background: #ef444422 !important;
+      border-color: var(--danger) !important;
+      color: #f87171;
+    }
+
+    /* Feedback Box */
+    .feedback-box {
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+      font-weight: 600;
+    }
+    .feedback-box.correct {
+      background: #14532d;
+      color: #4ade80;
+      border: 1px solid var(--success);
+    }
+    .feedback-box.incorrect {
+      background: #7f1d1d;
+      color: #f87171;
+      border: 1px solid var(--danger);
+    }
+
+    /* Scoreboard */
+    .scoreboard {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #334155;
+    }
+    .score-badge {
+      background: var(--accent);
+      color: #000;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 800;
+    }
+
+    /* Certificate Box */
+    .badge-icon {
+      font-size: 4rem;
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .audio-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      h1 { font-size: 1.6rem; }
+      h2 { font-size: 1.3rem; }
+      .container { padding: 15px; }
+      .btn { width: 100%; margin: 5px 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header with Progress -->
+    <div class="header-bar">
+      <div class="progress-container">
+        <div class="progress-bar" id="main-progress"></div>
+      </div>
+      <div class="progress-labels">
+        <span>Inicio</span>
+        <span>Aprende</span>
+        <span>Repasa</span>
+        <span>Autoevalúate</span>
+        <span>Reto Final</span>
+      </div>
+    </div>
+
+    <!-- PANTALLA 1: BIENVENIDA -->
+    <div id="screen-1" class="screen active">
+      <h1>Exploradores de Redes</h1>
+      <p style="text-align:center; color:#38bdf8; font-weight:600;">Descubre cómo se conectan las computadoras y cómo funciona el mundo digital.</p>
+      
+      <div style="text-align: center; font-size: 3rem; margin: 20px 0;">
+        💻 🌐 📡 🔌 🔒 ☁️
+      </div>
+
+      <div style="background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+        <p><strong>Asignatura:</strong> Informática – Redes de Computadoras</p>
+        <p><strong>Grado:</strong> 11.º Bachillerato en Informática</p>
+        <p><strong>Guía académica:</strong> Dr. Danilo Castillo Miranda</p>
+        <p><strong>Contexto:</strong> MEDUCA, Panamá</p>
+      </div>
+
+      <div class="audio-controls">
+        <button class="btn btn-audio" onclick="speakText('Bienvenido a Exploradores de Redes. Por favor, escribe tu nombre completo para comenzar.', 'es-ES')">🔊 Escuchar en español</button>
+        <button class="btn btn-audio" onclick="speakText('Welcome to Network Explorers. Please enter your full name to start.', 'en-US')">🔊 Listen in English</button>
+      </div>
+
+      <div class="input-group">
+        <label for="student-name" style="display:block; margin-bottom:8px;">Escribe tu nombre completo:</label>
+        <input type="text" id="student-name" placeholder="Ej. Juan Pérez" required />
+      </div>
+
+      <div style="text-align: center;">
+        <button class="btn" onclick="startActivity()">COMENZAR</button>
+      </div>
+    </div>
+
+    <!-- PANTALLA 2: OBJETIVOS -->
+    <div id="screen-2" class="screen">
+      <h2>Objetivos de Aprendizaje</h2>
+      <p>Al completar esta microactividad serás capaz de:</p>
+
+      <div class="grid-cards">
+        <div class="card"><span class="card-icon">🎯</span><strong>Definir:</strong> Qué es una red de computadoras y su propósito.</div>
+        <div class="card"><span class="card-icon">🛠️</span><strong>Identificar:</strong> Componentes principales de una infraestructura de red.</div>
+        <div class="card"><span class="card-icon">🌍</span><strong>Diferenciar:</strong> Redes de alcance LAN, MAN y WAN.</div>
+        <div class="card"><span class="card-icon">🔄</span><strong>Reconocer:</strong> Funciones del router, switch, módem y punto de acceso.</div>
+        <div class="card"><span class="card-icon">💡</span><strong>Explicar:</strong> La importancia de las redes en la sociedad y educación.</div>
+        <div class="card"><span class="card-icon">🛡️</span><strong>Aplicar:</strong> Buenas prácticas de ciberseguridad básica.</div>
+      </div>
+
+      <div class="audio-controls">
+        <button class="btn btn-audio" onclick="speakText('En esta actividad aprenderás los objetivos clave sobre redes de computadoras.', 'es-ES')">🔊 Escuchar en español</button>
+        <button class="btn btn-audio" onclick="speakText('In this activity you will learn key objectives about computer networks.', 'en-US')">🔊 Listen in English</button>
+      </div>
+
+      <div style="text-align: right; margin-top:20px;">
+        <button class="btn" onclick="goToScreen(3, 25)">IR A APRENDE →</button>
+      </div>
+    </div>
+
+    <!-- PANTALLA 3: APRENDE -->
+    <div id="screen-3" class="screen">
+      <h2>Módulo de Aprendizaje</h2>
+      
+      <div class="audio-controls">
+        <button class="btn btn-audio" onclick="speakText('Revisa los diez conceptos clave de las redes de computadoras antes de repasar.', 'es-ES')">🔊 Escuchar en español</button>
+        <button class="btn btn-audio" onclick="speakText('Review the key concepts of computer networks before practicing.', 'en-US')">🔊 Listen in English</button>
+      </div>
+
+      <div class="grid-cards">
+        <div class="card">
+          <h3>1. ¿Qué es una Red?</h3>
+          <p>Conjunto de computadoras y dispositivos conectados entre sí para compartir información, recursos y servicios.</p>
+        </div>
+        <div class="card">
+          <h3>2. Importancia</h3>
+          <p>Facilita la comunicación global, el trabajo colaborativo, acceso a datos e intercambio eficiente de recursos (impresoras, archivos).</p>
+        </div>
+        <div class="card">
+          <h3>3. LAN (Local Area Network)</h3>
+          <p>Red que conecta dispositivos en un área geográfica pequeña, como una casa, aula o laboratorio escolar.</p>
+        </div>
+        <div class="card">
+          <h3>4. MAN (Metropolitan Area)</h3>
+          <p>Red de alta velocidad que conecta varias redes LAN dentro de una misma ciudad o área metropolitana.</p>
+        </div>
+        <div class="card">
+          <h3>5. WAN (Wide Area Network)</h3>
+          <p>Red que se extiende sobre grandes distancias geográficas, interconectando países o continentes (ej. Internet).</p>
+        </div>
+        <div class="card">
+          <h3>6. Router</h3>
+          <p>Dispositivo inteligente que interconecta diferentes redes y dirige el tráfico de datos por la mejor ruta.</p>
+        </div>
+        <div class="card">
+          <h3>7. Switch</h3>
+          <p>Conecta múltiples dispositivos dentro de una misma red local (LAN) guiando el tráfico directamente al destinatario.</p>
+        </div>
+        <div class="card">
+          <h3>8. Módem</h3>
+          <p>Convierte las señales analógicas del proveedor de servicios de Internet (ISP) a señales digitales que entienden los equipos.</p>
+        </div>
+        <div class="card">
+          <h3>9. Punto de Acceso (AP)</h3>
+          <p>Dispositivo que permite a equipos informáticos conectarse de forma inalámbrica (Wi-Fi) a una red cableada.</p>
+        </div>
+        <div class="card">
+          <h3>10. Ciberseguridad Básica</h3>
+          <p>Uso de contraseñas seguras, verificación de enlaces sospechosos y no compartir información privada en redes públicas.</p>
+        </div>
+      </div>
+
+      <div style="text-align: right; margin-top:20px;">
+        <button class="btn" onclick="goToScreen(4, 50)">IR AL REPASO →</button>
+      </div>
+    </div>
+
+    <!-- PANTALLA 4: REPASO GAMIFICADO -->
+    <div id="screen-4" class="screen">
+      <h2>Repaso Gamificado</h2>
+      <p>Responde preguntas de práctica rápida para acumular puntos antes de la autoevaluación.</p>
+
+      <div class="scoreboard">
+        <span>Puntos acumulados:</span>
+        <span class="score-badge" id="repaso-score">+0 pts</span>
+      </div>
+
+      <div id="repaso-container">
+        <!-- Dynamic Content -->
+      </div>
+
+      <div id="repaso-feedback" class="feedback-box"></div>
+
+      <div style="text-align: right; margin-top:20px;">
+        <button class="btn btn-secondary" id="next-repaso-btn" onclick="nextRepasoQuestion()" style="display:none;">Siguiente Pregunta</button>
+        <button class="btn" id="finish-repaso-btn" onclick="goToScreen(5, 75)" style="display:none;">CONTINUAR A AUTOEVALUACIÓN →</button>
+      </div>
+    </div>
+
+    <!-- PANTALLA 5: AUTOEVALUACIÓN -->
+    <div id="screen-5" class="screen">
+      <h2>Autoevaluación (5 Preguntas)</h2>
+      <p>Esta prueba diagnóstica no afecta tu nota final. Sirve para medir tu preparación.</p>
+
+      <div id="auto-container">
+        <!-- Dynamic autoeval -->
+      </div>
+
+      <div id="auto-feedback" class="feedback-box"></div>
+
+      <div id="auto-result-box" style="display:none; background:#0f172a; padding:15px; border-radius:8px; margin-top:15px; text-align:center;">
+        <h3>Tu nivel de preparación es:</h3>
+        <p id="auto-prep-text" style="font-size:1.3rem; font-weight:700; color:#38bdf8;"></p>
+      </div>
+
+      <div style="text-align: right; margin-top:20px;">
+        <button class="btn btn-secondary" id="next-auto-btn" onclick="nextAutoQuestion()" style="display:none;">Siguiente</button>
+        <button class="btn" id="to-final-btn" onclick="startFinalExam()" style="display:none;">CONTINUAR AL RETO FINAL →</button>
+      </div>
+    </div>
+
+    <!-- PANTALLA 6: RETO FINAL -->
+    <div id="screen-6" class="screen">
+      <div class="scoreboard">
+        <span>Reto Final (20 Preguntas)</span>
+        <span class="score-badge" id="exam-score">Puntuación: 0/100</span>
+      </div>
+
+      <div id="exam-q-number" style="color:#38bdf8; font-weight:700; margin-bottom:5px;">Pregunta 1 de 20</div>
+      <h3 id="exam-question-text" style="margin-bottom:15px;">-</h3>
+
+      <div class="options-container" id="exam-options">
+        <!-- Dynamic options -->
+      </div>
+
+      <div id="exam-feedback" class="feedback-box"></div>
+
+      <div style="text-align: right; margin-top:20px;">
+        <button class="btn" id="exam-next-btn" onclick="nextExamQuestion()" disabled>Siguiente Pregunta</button>
+      </div>
+    </div>
+
+    <!-- PANTALLA 7: RESULTADOS -->
+    <div id="screen-7" class="screen">
+      <h1>Resultados Finales</h1>
+      <h2 id="result-student-name" style="text-align:center; border:none; color:#f59e0b;">-</h2>
+
+      <div class="badge-icon" id="result-badge-icon">🏆</div>
+      <h3 id="result-badge-title" style="text-align:center; font-size:1.5rem;">-</h3>
+
+      <div class="grid-cards" style="margin-top:20px;">
+        <div class="card" style="text-align:center;">
+          <p>Puntuación Total</p>
+          <h2 id="res-score-val" style="border:none; color:#38bdf8;">0/100</h2>
+        </div>
+        <div class="card" style="text-align:center;">
+          <p>Porcentaje</p>
+          <h2 id="res-percent-val" style="border:none; color:#38bdf8;">0%</h2>
+        </div>
+        <div class="card" style="text-align:center;">
+          <p>Correctas / Incorrectas</p>
+          <h2 id="res-counts-val" style="border:none; color:#38bdf8;">0 / 0</h2>
+        </div>
+        <div class="card" style="text-align:center;">
+          <p>Estado</p>
+          <h2 id="res-status-val" style="border:none;">-</h2>
+        </div>
+      </div>
+
+      <p id="result-message" style="text-align:center; margin-top:15px; font-weight:600;"></p>
+
+      <div style="text-align: center; margin-top:25px;">
+        <button class="btn btn-secondary" onclick="restartActivity()">VOLVER A INTENTAR</button>
+        <button class="btn" id="cert-btn" onclick="generatePDF()" style="display:none;">VER CERTIFICADO (PDF)</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ESTADO GLOBAL DE LA APLICACIÓN
+    let studentName = "";
+    let currentScreen = 1;
+    
+    // Repaso Gamificado state
+    let repasoIndex = 0;
+    let repasoScore = 0;
+
+    // Autoevaluación state
+    let autoIndex = 0;
+    let autoScore = 0;
+
+    // Reto Final state
+    let examIndex = 0;
+    let examScore = 0;
+    let examCorrect = 0;
+    let examIncorrect = 0;
+    let examAnswered = false;
+
+    // SÍNTESIS DE VOZ (SpeechSynthesis API)
+    function speakText(text, lang) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Stop current speech
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert("Tu navegador no soporta síntesis de voz.");
+      }
+    }
+
+    // NAVEGACIÓN
+    function goToScreen(screenNumber, progressPercent) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(`screen-${screenNumber}`).classList.add('active');
+      document.getElementById('main-progress').style.width = `${progressPercent}%`;
+      currentScreen = screenNumber;
+      window.scrollTo(0, 0);
+
+      if(screenNumber === 4 && repasoIndex === 0) loadRepasoQuestion();
+      if(screenNumber === 5 && autoIndex === 0) loadAutoQuestion();
+    }
+
+    function startActivity() {
+      const input = document.getElementById('student-name');
+      if (!input.value.trim()) {
+        alert("Por favor, ingresa tu nombre completo para continuar.");
+        return;
+      }
+      studentName = input.value.trim();
+      goToScreen(2, 0);
+    }
+
+    // DATA: REPASO GAMIFICADO
+    const repasoQuestions = [
+      {
+        q: "¿Qué dispositivo conecta computadoras dentro de la misma red local (LAN)?",
+        options: ["Switch", "Router", "Módem"],
+        correct: 0,
+        pts: 10
+      },
+      {
+        q: "La red de cobertura nacional o mundial como Internet es una...",
+        options: ["LAN", "MAN", "WAN"],
+        correct: 2,
+        pts: 20
+      },
+      {
+        q: "¿El Router y el Switch cumplen exactamente la misma función?",
+        options: ["Verdadero", "Falso"],
+        correct: 1,
+        pts: 30
+      }
+    ];
+
+    function loadRepasoQuestion() {
+      const q = repasoQuestions[repasoIndex];
+      const container = document.getElementById('repaso-container');
+      document.getElementById('repaso-feedback').style.display = 'none';
+      document.getElementById('next-repaso-btn').style.display = 'none';
+
+      let html = `<p style="font-size:1.1rem; font-weight:600;">${repasoIndex + 1}. ${q.q}</p><div class="options-container">`;
+      q.options.forEach((opt, idx) => {
+        html += `<button class="option-btn" onclick="checkRepasoAnswer(${idx})">${opt}</button>`;
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function checkRepasoAnswer(selectedIdx) {
+      const q = repasoQuestions[repasoIndex];
+      const feedback = document.getElementById('repaso-feedback');
+      const btns = document.querySelectorAll('#repaso-container .option-btn');
+      
+      btns.forEach(b => b.disabled = true);
+
+      if (selectedIdx === q.correct) {
+        btns[selectedIdx].classList.add('correct');
+        repasoScore += q.pts;
+        document.getElementById('repaso-score').innerText = `+${repasoScore} pts`;
+        const msgs = ["¡Excelente!", "¡Vas muy bien!", "¡Gran respuesta!"];
+        feedback.className = "feedback-box correct";
+        feedback.innerText = `✓ ${msgs[repasoIndex % msgs.length]} (+${q.pts} pts)`;
+      } else {
+        btns[selectedIdx].classList.add('incorrect');
+        btns[q.correct].classList.add('correct');
+        feedback.className = "feedback-box incorrect";
+        feedback.innerText = "✗ ¡Casi lo tienes! Revisa el concepto.";
+      }
+      feedback.style.display = 'block';
+
+      if (repasoIndex < repasoQuestions.length - 1) {
+        document.getElementById('next-repaso-btn').style.display = 'inline-block';
+      } else {
+        document.getElementById('finish-repaso-btn').style.display = 'inline-block';
+      }
+    }
+
+    function nextRepasoQuestion() {
+      repasoIndex++;
+      loadRepasoQuestion();
+    }
+
+    // DATA: AUTOEVALUACIÓN (5 preguntas)
+    const autoQuestions = [
+      { q: "1. Red que cubre una ciudad entera:", opts: ["LAN", "MAN", "WAN"], ans: 1 },
+      { q: "2. Dispositivo para conexión inalámbrica:", opts: ["Punto de Acceso", "Módem", "Switch"], ans: 0 },
+      { q: "3. Convierte señales del proveedor de Internet:", opts: ["Router", "Módem", "LAN"], ans: 1 },
+      { q: "4. Compartir impresoras es una ventaja de las redes:", opts: ["Verdadero", "Falso"], ans: 0 },
+      { q: "5. ¿Debes ingresar a enlaces sospechosos si te piden claves?", opts: ["Sí", "No"], ans: 1 }
+    ];
+
+    function loadAutoQuestion() {
+      const q = autoQuestions[autoIndex];
+      const container = document.getElementById('auto-container');
+      document.getElementById('auto-feedback').style.display = 'none';
+      document.getElementById('next-auto-btn').style.display = 'none';
+
+      let html = `<p style="font-size:1.1rem; font-weight:600;">${q.q}</p><div class="options-container">`;
+      q.opts.forEach((o, i) => {
+        html += `<button class="option-btn" onclick="checkAutoAnswer(${i})">${o}</button>`;
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function checkAutoAnswer(idx) {
+      const q = autoQuestions[autoIndex];
+      const feedback = document.getElementById('auto-feedback');
+      const btns = document.querySelectorAll('#auto-container .option-btn');
+      btns.forEach(b => b.disabled = true);
+
+      if (idx === q.ans) {
+        btns[idx].classList.add('correct');
+        autoScore++;
+        feedback.className = "feedback-box correct";
+        feedback.innerText = "✓ ¡Correcto!";
+      } else {
+        btns[idx].classList.add('incorrect');
+        btns[q.ans].classList.add('correct');
+        feedback.className = "feedback-box incorrect";
+        feedback.innerText = "✗ Incorrecto.";
+      }
+      feedback.style.display = 'block';
+
+      if (autoIndex < autoQuestions.length - 1) {
+        document.getElementById('next-auto-btn').style.display = 'inline-block';
+      } else {
+        showAutoResult();
+      }
+    }
+
+    function nextAutoQuestion() {
+      autoIndex++;
+      loadAutoQuestion();
+    }
+
+    function showAutoResult() {
+      const percent = (autoScore / 5) * 100;
+      let prep = "";
+      if (percent >= 90) prep = "Excelente (90-100%)";
+      else if (percent >= 70) prep = "Bueno (70-89%)";
+      else if (percent >= 50) prep = "Debes repasar algunos conceptos (50-69%)";
+      else prep = "Te recomendamos revisar nuevamente el contenido (0-49%)";
+
+      document.getElementById('auto-prep-text').innerText = prep;
+      document.getElementById('auto-result-box').style.display = 'block';
+      document.getElementById('to-final-btn').style.display = 'inline-block';
+    }
+
+    // DATA: RETO FINAL (20 Preguntas Oficiales)
+    const rawExamQuestions = [
+      {
+        q: "1. ¿Qué es una red de computadoras?",
+        opts: ["Un conjunto de computadoras y dispositivos conectados para compartir información y recursos.", "Un programa para reparar computadoras dañadas.", "Un cable de energía eléctrica.", "Un monitor conectado a Internet."],
+        correct: 0,
+        exp: "Una red es un sistema de dispositivos interconectados para compartir datos y recursos."
+      },
+      {
+        q: "2. Una de las principales funciones de una red de computadoras es permitir compartir información y recursos.",
+        opts: ["Verdadero", "Falso"],
+        correct: 0,
+        exp: "Compartir archivos, impresoras y servicios es la razón principal de crear redes."
+      },
+      {
+        q: "3. ¿Qué dispositivo conecta diferentes redes y dirige el tráfico de datos entre ellas?",
+        opts: ["Switch", "Router", "Módem", "Punto de acceso"],
+        correct: 1,
+        exp: "El router interconecta redes distintas (ej. tu red local con Internet)."
+      },
+      {
+        q: "4. ¿Cuál es la función principal de un switch?",
+        opts: ["Proporcionar señal Wi-Fi exclusivamente.", "Conectar dispositivos dentro de una red local y facilitar la comunicación entre ellos.", "Convertir datos analógicos a digitales.", "Conectar ciudades lejanas."],
+        correct: 1,
+        exp: "El switch funciona como el núcleo central que une los equipos dentro de una LAN."
+      },
+      {
+        q: "5. Una red que conecta computadoras dentro de un laboratorio escolar generalmente se clasifica como:",
+        opts: ["WAN", "MAN", "LAN", "PAN"],
+        correct: 2,
+        exp: "Las redes de área local (LAN) cubren espacios reducidos como aulas o laboratorios."
+      },
+      {
+        q: "6. ¿Qué significa LAN?",
+        opts: ["Local Area Network", "Long Access Network", "Logical Array Node", "Link Area Network"],
+        correct: 0,
+        exp: "LAN corresponde a las siglas en inglés de Local Area Network (Red de Área Local)."
+      },
+      {
+        q: "7. ¿Qué tipo de red puede abarcar una ciudad o área metropolitana?",
+        opts: ["LAN", "MAN", "WAN", "PAN"],
+        correct: 1,
+        exp: "MAN significa Metropolitan Area Network y abarca extensiones de nivel ciudad."
+      },
+      {
+        q: "8. ¿Cuál es la característica principal de una WAN?",
+        opts: ["Funciona solo sin cables.", "Tiene un alcance geográfico amplio.", "Conecta solo dos computadoras.", "Cubre solo un aula."],
+        correct: 1,
+        exp: "Las WAN (Wide Area Network) conectan países y continentes."
+      },
+      {
+        q: "9. Asociación de dispositivos: ¿Qué equipo permite la comunicación con el proveedor de Internet?",
+        opts: ["Punto de acceso", "Módem", "Switch", "Tarjeta de red"],
+        correct: 1,
+        exp: "El módem modula y demodula la señal que viene de tu proveedor (ISP)."
+      },
+      {
+        q: "10. Una escuela desea conectar 30 computadoras de un laboratorio para compartir archivos e impresoras. ¿Qué tipo de red sería apropiada?",
+        opts: ["LAN", "MAN", "WAN", "SATELLITE"],
+        correct: 0,
+        exp: "Un entorno escolar cerrado requiere una infraestructura tipo LAN."
+      },
+      {
+        q: "11. Internet puede considerarse una red de alcance mundial que interconecta múltiples redes.",
+        opts: ["Verdadero", "Falso"],
+        correct: 0,
+        exp: "Internet es la 'red de redes' (WAN) más grande del mundo."
+      },
+      {
+        q: "12. ¿Cuál es una ventaja importante de las redes de computadoras?",
+        opts: ["Aumentan el peso de los equipos.", "Facilitan la comunicación y el intercambio de recursos.", "Eliminan la necesidad de usar energía.", "Evitan el uso de monitores."],
+        correct: 1,
+        exp: "Las redes optimizan costos y tiempos al compartir información al instante."
+      },
+      {
+        q: "13. ¿Cuál representa un riesgo relacionado con las redes?",
+        opts: ["Sufrir un ataque informático o robo de información.", "Aumentar la velocidad de impresión.", "Tener señal inalámbrica muy rápida.", "Guardar archivos en carpetas."],
+        correct: 0,
+        exp: "La interconexión expone los equipos a amenazas de ciberseguridad si no se protegen."
+      },
+      {
+        q: "14. Un estudiante recibe un enlace desconocido que solicita su contraseña. ¿Qué debería hacer?",
+        opts: ["Ingresar la contraseña inmediatamente.", "Verificar el enlace y evitar proporcionar información personal si no es confiable.", "Compartir el enlace con todos sus amigos.", "Cambiar de computadora."],
+        correct: 1,
+        exp: "Jamás debes ingresar credenciales en enlaces no verificados (prevención de Phishing)."
+      },
+      {
+        q: "15. El router y el switch cumplen exactamente la misma función.",
+        opts: ["Verdadero", "Falso"],
+        correct: 1,
+        exp: "Falso: El switch une equipos en la misma red; el router une redes diferentes."
+      },
+      {
+        q: "16. ¿Qué dispositivo permite conectar equipos mediante tecnología inalámbrica a una red?",
+        opts: ["Switch cableado", "Punto de acceso", "Cable UTP", "Disco duro interconectado"],
+        correct: 1,
+        exp: "El punto de acceso (Access Point) emite la señal Wi-Fi para conexiones sin cables."
+      },
+      {
+        q: "17. Selecciona el orden más adecuado para la conexión de una red local a Internet:",
+        opts: ["Computadora → switch/punto de acceso → router → servicio de Internet", "Router → Computadora → Switch → Servicio de Internet", "Servicio de Internet → Computadora → Switch → Router", "Computadora → Router → Switch → Punto de Acceso"],
+        correct: 0,
+        exp: "El flujo lógico va desde el cliente (PC) al concentrador (Switch/AP), luego al enrutador y hacia la salida a Internet."
+      },
+      {
+        q: "18. ¿Cuál es una buena práctica de seguridad?",
+        opts: ["Utilizar contraseñas seguras y mantenerlas privadas.", "Anotar contraseñas en lugares públicos.", "Desactivar el antivirus siempre.", "Usar '123456' como clave universal."],
+        correct: 0,
+        exp: "Las contraseñas robustas y secretas son la primera línea de defensa."
+      },
+      {
+        q: "19. Una institución educativa tiene varios edificios en diferentes sectores de una misma ciudad y necesita interconectar sus redes. ¿Qué tipo de red podría utilizar?",
+        opts: ["LAN", "MAN", "PAN", "WAN"],
+        correct: 1,
+        exp: "Una red MAN conecta múltiples sedes o edificios dentro de la misma metrópoli."
+      },
+      {
+        q: "20. ¿Por qué los estudiantes deben conocer las redes de computadoras?",
+        opts: ["Para utilizar la tecnología de manera responsable, comprender cómo se comunican los dispositivos y aprovechar sus recursos.", "Únicamente para pasar el examen.", "Para desarmar computadoras físicamente.", "Para evitar usar Internet."],
+        correct: 0,
+        exp: "El conocimiento de redes permite un uso consciente, productivo y seguro de las TICs."
+      }
+    ];
+
+    let examPreparedQuestions = [];
+
+    function startFinalExam() {
+      // Meclar opciones manteniendo la respuesta correcta asociada
+      examPreparedQuestions = rawExamQuestions.map(item => {
+        const correctText = item.opts[item.correct];
+        // Clone array and shuffle
+        let shuffledOpts = [...item.opts].sort(() => Math.random() - 0.5);
+        let newCorrectIndex = shuffledOpts.indexOf(correctText);
+        return {
+          q: item.q,
+          opts: shuffledOpts,
+          correct: newCorrectIndex,
+          exp: item.exp
+        };
+      });
+
+      examIndex = 0;
+      examScore = 0;
+      examCorrect = 0;
+      examIncorrect = 0;
+
+      goToScreen(6, 100);
+      loadExamQuestion();
+    }
+
+    function loadExamQuestion() {
+      examAnswered = false;
+      const q = examPreparedQuestions[examIndex];
+      document.getElementById('exam-q-number').innerText = `Pregunta ${examIndex + 1} de 20`;
+      document.getElementById('exam-question-text').innerText = q.q;
+      document.getElementById('exam-score').innerText = `Puntuación: ${examScore}/100`;
+      
+      const feedback = document.getElementById('exam-feedback');
+      feedback.style.display = 'none';
+
+      const nextBtn = document.getElementById('exam-next-btn');
+      nextBtn.disabled = true;
+      nextBtn.innerText = (examIndex === 19) ? "VER RESULTADOS" : "Siguiente Pregunta";
+
+      const container = document.getElementById('exam-options');
+      container.innerHTML = "";
+
+      q.opts.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = optText;
+        btn.onclick = () => selectExamOption(idx);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectExamOption(selectedIdx) {
+      if (examAnswered) return;
+      examAnswered = true;
+
+      const q = examPreparedQuestions[examIndex];
+      const btns = document.querySelectorAll('#exam-options .option-btn');
+      const feedback = document.getElementById('exam-feedback');
+
+      btns.forEach(b => b.disabled = true);
+
+      if (selectedIdx === q.correct) {
+        btns[selectedIdx].classList.add('correct');
+        examScore += 5;
+        examCorrect++;
+        feedback.className = "feedback-box correct";
+        feedback.innerHTML = `✓ ¡Correcto! Excelente trabajo.<br><span style="font-size:0.85rem; font-weight:normal;">${q.exp}</span>`;
+      } else {
+        btns[selectedIdx].classList.add('incorrect');
+        btns[q.correct].classList.add('correct');
+        examIncorrect++;
+        feedback.className = "feedback-box incorrect";
+        feedback.innerHTML = `✗ Incorrecto. Revisa el concepto y continúa aprendiendo.<br><span style="font-size:0.85rem; font-weight:normal;">${q.exp}</span>`;
+      }
+
+      document.getElementById('exam-score').innerText = `Puntuación: ${examScore}/100`;
+      feedback.style.display = 'block';
+      document.getElementById('exam-next-btn').disabled = false;
+    }
+
+    function nextExamQuestion() {
+      if (examIndex < 19) {
+        examIndex++;
+        loadExamQuestion();
+      } else {
+        showFinalResults();
+      }
+    }
+
+    // PANTALLA 7: MOSTRAR RESULTADOS
+    function showFinalResults() {
+      goToScreen(7, 100);
+
+      const percent = (examScore / 100) * 100;
+      const passed = examScore >= 70;
+
+      document.getElementById('result-student-name').innerText = studentName;
+      document.getElementById('res-score-val').innerText = `${examScore}/100`;
+      document.getElementById('res-percent-val').innerText = `${percent}%`;
+      document.getElementById('res-counts-val').innerText = `${examCorrect} / ${examIncorrect}`;
+      
+      const statusEl = document.getElementById('res-status-val');
+      statusEl.innerText = passed ? "APROBADO" : "NO APROBADO";
+      statusEl.style.color = passed ? "#22c55e" : "#ef4444";
+
+      // Determinar Insignia
+      let badgeIcon = "📚";
+      let badgeTitle = "En entrenamiento";
+
+      if (examScore >= 90) {
+        badgeIcon = "🏆";
+        badgeTitle = "Maestro de la Conectividad";
+      } else if (examScore >= 80) {
+        badgeIcon = "🥇";
+        badgeTitle = "Experto en Redes";
+      } else if (examScore >= 70) {
+        badgeIcon = "🥈";
+        badgeTitle = "Explorador de Redes";
+      }
+
+      document.getElementById('result-badge-icon').innerText = badgeIcon;
+      document.getElementById('result-badge-title').innerText = badgeTitle;
+
+      const msgEl = document.getElementById('result-message');
+      const certBtn = document.getElementById('cert-btn');
+
+      if (passed) {
+        msgEl.innerText = "¡Felicitaciones! Has demostrado dominio de los conceptos fundamentales de Redes de Computadoras.";
+        msgEl.style.color = "#22c55e";
+        certBtn.style.display = 'inline-block';
+        
+        // Disparar confeti
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+      } else {
+        msgEl.innerText = "Te recomendamos revisar nuevamente el contenido y realizar el reto otra vez.";
+        msgEl.style.color = "#ef4444";
+        certBtn.style.display = 'none';
+      }
+    }
+
+    function restartActivity() {
+      repasoIndex = 0;
+      repasoScore = 0;
+      autoIndex = 0;
+      autoScore = 0;
+      examIndex = 0;
+      examScore = 0;
+      document.getElementById('repaso-score').innerText = "+0 pts";
+      goToScreen(1, 0);
+    }
+
+    // GENERACIÓN DE CERTIFICADO PDF
+    function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const today = new Date().toLocaleDateString('es-PA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      // Fondo y bordes
+      doc.setFillColor(15, 23, 42); // #0f172a
+      doc.rect(0, 0, 297, 210, 'F');
+
+      doc.setDrawColor(2, 132, 199); // #0284c7
+      doc.setLineWidth(3);
+      doc.rect(10, 10, 277, 190);
+
+      doc.setDrawColor(245, 158, 11); // #f59e0b
+      doc.setLineWidth(1);
+      doc.rect(14, 14, 269, 182);
+
+      // Encabezado
+      doc.setTextColor(56, 189, 248);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(26);
+      doc.text("CERTIFICADO DE APROVECHAMIENTO", 148.5, 40, { align: "center" });
+
+      doc.setTextColor(248, 250, 252);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "normal");
+      doc.text("Se certifica que:", 148.5, 58, { align: "center" });
+
+      // Nombre del Estudiante
+      doc.setTextColor(245, 158, 11);
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text(studentName.toUpperCase(), 148.5, 75, { align: "center" });
+
+      // Detalle de la actividad
+      doc.setTextColor(248, 250, 252);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "normal");
+      doc.text("ha completado satisfactoriamente la microactividad educativa:", 148.5, 92, { align: "center" });
+
+      doc.setTextColor(56, 189, 248);
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text('"Introducción a las Redes de Computadoras"', 148.5, 106, { align: "center" });
+
+      doc.setTextColor(148, 163, 184);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "italic");
+      doc.text("11.º Bachillerato en Informática — MEDUCA, Panamá", 148.5, 116, { align: "center" });
+
+      // Frase acreditativa
+      doc.setTextColor(203, 213, 225);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      const splitText = doc.splitTextToSize("Por demostrar conocimientos fundamentales sobre redes de computadoras, sus componentes, tipos, aplicaciones y prácticas básicas de seguridad.", 200);
+      doc.text(splitText, 148.5, 130, { align: "center" });
+
+      // Calificación y Estado
+      doc.setFillColor(30, 41, 59);
+      doc.roundedRect(80, 145, 137, 20, 3, 3, 'F');
+      doc.setTextColor(34, 197, 94);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Calificación: ${examScore}/100   |   Estado: APROBADO`, 148.5, 157, { align: "center" });
+
+      // Firmas y Fechas
+      doc.setTextColor(148, 163, 184);
+      doc.setFontSize(10);
+      doc.text(`Fecha: ${today}`, 50, 182);
+      doc.text("Guía académica: Dr. Danilo Castillo Miranda", 247, 182, { align: "right" });
+
+      // Guardar PDF
+      doc.save(`Certificado_Redes_${studentName.replace(/\s+/g, '_')}.pdf`);
+    }
+  </script>
+</body>
+</html>
